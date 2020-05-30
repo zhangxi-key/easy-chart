@@ -1,0 +1,15 @@
+{
+  "name": "vendor_name/wokerman",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "zhangxi",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+    "workerman/workerman": "~4.0.5"
+  }
+}

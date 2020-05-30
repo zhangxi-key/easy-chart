@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        ul{
+            list-style-type: none;
+        }
+        .main{
+            width: 900px;
+            height: 100%;
+            margin: auto;
+        }
+        .online-list{
+            float: right;
+            width: 300px;
+            height: 400px;
+            border: 1px solid darkgreen;
+            margin: 10px 50px;
+        }
+        .online-list ul li{
+            margin: 10px 10px;
+        }
+        h3{
+            padding: 5px;
+        }
+        .chart-view{
+            margin-top: 10px;
+            float: left;
+            width: 450px;
+            height: 600px;
+            border: 1px solid darkgoldenrod;
+
+        }
+        .chart-view ul{
+            height: 560px;
+            overflow-y: auto;
+        }
+
+        .chart-view ul li{
+            width: 400px;
+            border: 1px solid greenyellow;
+            margin: 10px;
+            border-radius: 10px;
+            padding: 5px;
+        }
+        .send-message textarea{
+            float: left;
+            margin-top: 10px;
+            width: 300px;
+            height: 50px;
+            padding: 4px;
+        }
+        .send-message #send-msg{
+            margin-top: 20px;
+            margin-left: 10px;
+            width: 100px;
+            height: 40px;
+            font-size: 18px;
+            color: aliceblue;
+            background-color: darkgreen;
+        }
+        .name-color-red{
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <div>你当前的昵称是：<span class="name-color-red" id="name"></span></div>
+    <div class="online-list">
+        <h3>在线用户列表</h3>
+        <ul id="user-list">
+        </ul>
+    </div>
+    <div class="chart-view">
+        <h3>聊天窗口</h3>
+        <div>
+            <ul id="chart-list">
+            </ul>
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+    <div class="send-message">
+        <textarea  name="content" id="content" ></textarea>
+        <button type="button" id="send-msg">发送</button>
+    </div>
+</div>
+
+
+<script>
+    let name = prompt('请输入你的昵称');
+    if(name == null || name == ''){
+        alert('请输入昵称！不输不让你聊天！！！！');
+        $('.main').hide();
+    }
+    $('#name').text(name);
+    ws = new WebSocket("ws://127.0.0.1:2000");
+    ws.onopen = function() {
+        //模拟登陆
+        ws.send(JSON.stringify({'name':name,'type':'login'}));
+        //发送消息
+        $('#send-msg').on('click',function () {
+            let content = $('#content').val();
+            let json = {'type':"send",'name':name,'content':content};
+            ws.send(JSON.stringify(json));
+        })
+    };
+    ws.onmessage = function(e) {
+        let data = JSON.parse(e.data);
+        console.log(data);
+        //根据类型选择场景
+        switch (data.type) {
+            //获取用户列表
+            case 'userList':
+                console.log(data.list);
+                let user_list = '';
+                for (i in data.list)
+                {
+                    user_list += '<li><a href="javascript:;">'+data.list[i]['name']+'</a></li>'
+                }
+                // data.list.forEach(function(item,index){
+                //     user_list += '<li><a href="javascript:;">'+item.name+'</a></li>'
+                // })
+                $('#user-list').html(user_list);
+                break;
+            //接收消息
+            case 'msg':
+                let html = '<li>'+
+                    '<p><a href="javascript:;">'+data.name+'</a>&nbsp;&nbsp;<span>'+data.time+'</span></p>'+
+                    '<p>'+data.content+'</p>'+
+                    '</li>';
+                $('.chart-view ul').append(html);
+                break;
+        }
+
+    };
+</script>
+</body>
+</html>
